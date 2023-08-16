@@ -11,6 +11,8 @@ class Profile(models.Model):
     birth = models.CharField(max_length=11)
     phone_number = models.CharField(max_length=13)
     image = models.ImageField(upload_to='profile/', default='default.png')
+    
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
