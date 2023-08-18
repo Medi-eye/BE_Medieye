@@ -1,10 +1,13 @@
-from rest_framework.serializers import ModelSerializer,EmailField,CharField,ValidationError,SerializerMethodField
+from rest_framework.serializers import ModelSerializer,EmailField,CharField,ValidationError,Serializer
 from rest_framework.validators import UniqueValidator
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+
 
 from django.contrib.auth.password_validation import validate_password
 
-from .models import User,Disease,Allergy,UserTakenMedi
-from posts.serializers import MedicineSerializer,Medicine
+from .models import User,UserTakenMedi,Profile
+from posts.serializers import Medicine
 
 
 class UserModelSerializer(ModelSerializer):
@@ -36,7 +39,23 @@ class UserSignupSerializer(ModelSerializer):
         user = User.objects.create(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
+        token = Token.objects.create(user=user)
         return user
+    
+
+class LoginSerializer(Serializer):
+    
+    username = CharField(required=True)
+    password = CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user:
+            token,created = Token.objects.get_or_create(user=user)
+            return token
+        raise ValidationError(
+            {"error": "Unable to log in with provided credentials."}
+        )
     
 class UserTakenMediSerializer(ModelSerializer):
 
@@ -54,3 +73,14 @@ class UserTakenMediSerializer(ModelSerializer):
         )
         return takenMedi
 
+
+class ProfileSerializer(ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+    def create(self, validated_data):
+        profile = Profile.objects.create(**validated_data)
+        profile.user = self.context['request'].user
+        profile.save()
+        return profile

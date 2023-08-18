@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from rest_framework.authentication import TokenAuthentication
 
 # Create your views here.
 
@@ -25,6 +26,7 @@ class MediViewSet(ModelViewSet):
 유저가 약물들을 즐겨찾기 추가, 리스트, 삭제, 검색 가능한 뷰셋
 '''
 class ScrapViewSet(ModelViewSet):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ScrapSerializer
     queryset = Scrap.objects.all()
